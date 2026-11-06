@@ -12,7 +12,7 @@
     (function () {
       try {
         var saved = localStorage.getItem("hw-manager-theme");
-        if (saved === "light" || saved === "dark") {
+        if (saved === "light" || saved === "dark" || saved === "huawei") {
           document.documentElement.dataset.theme = saved;
         }
       } catch (_) { /* storage indisponível */ }
@@ -96,39 +96,23 @@
   </svg>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       ÁREA DE TRABALHO / JANELA DESKTOP
+       APLICATIVO — janela única, fixa e em tela cheia
        ═══════════════════════════════════════════════════════════════════ -->
-  <div class="desktop" id="desktop">
+  <section class="app-window" id="appWindow" aria-label="Huawei Manager 2.0">
 
-    <div class="desktop-icons" aria-hidden="false">
-      <button class="desktop-shortcut" id="desktopShortcut" type="button" aria-label="Abrir Huawei Manager">
-        <span class="desktop-shortcut__icon"><svg class="icon" aria-hidden="true"><use href="#i-logo"/></svg></span>
-        <span>Huawei Manager</span>
-      </button>
-    </div>
-
-    <section class="app-window" id="appWindow" aria-label="Huawei Manager 2.0">
-
-      <!-- Barra de título -->
+      <!-- Barra de título do aplicativo -->
       <header class="titlebar" id="titlebar">
         <div class="titlebar__identity">
           <span class="titlebar__icon"><svg class="icon" aria-hidden="true"><use href="#i-logo"/></svg></span>
           <span class="titlebar__title">Huawei Manager</span>
           <span class="titlebar__version">2.0</span>
           <span class="titlebar__separator" aria-hidden="true"></span>
-          <span class="titlebar__context" id="windowContext">Serviços de Rede</span>
+          <span class="titlebar__context" id="windowContext">Visão geral</span>
         </div>
-        <div class="window-controls" aria-label="Controles da janela">
-          <button class="window-control" id="winMinimize" type="button" title="Minimizar" aria-label="Minimizar janela">
-            <svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg>
-          </button>
-          <button class="window-control" id="winMaximize" type="button" title="Maximizar" aria-label="Maximizar janela" aria-pressed="false">
-            <svg class="icon icon--max" aria-hidden="true"><use href="#i-square"/></svg>
-            <svg class="icon icon--restore" aria-hidden="true"><use href="#i-restore"/></svg>
-          </button>
-          <button class="window-control window-control--close" id="winClose" type="button" title="Fechar" aria-label="Fechar janela">
-            <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
-          </button>
+        <div class="titlebar__meta">
+          <span class="titlebar__session"><span class="status-dot status-dot--online" aria-hidden="true"></span> Sessão ativa</span>
+          <span class="titlebar__separator" aria-hidden="true"></span>
+          <span class="titlebar__mode">MVP · modo mock</span>
         </div>
       </header>
 
@@ -138,17 +122,16 @@
           <div class="menu">
             <button class="menu__trigger" type="button" data-menu="arquivo" aria-expanded="false" aria-haspopup="true">Arquivo</button>
             <div class="menu__dropdown" role="menu">
-              <button type="button" role="menuitem" data-menu-action="backup"><svg class="icon"><use href="#i-archive"/></svg> Novo backup <kbd>Ctrl+B</kbd></button>
+              <button type="button" role="menuitem" data-menu-action="backup"><svg class="icon"><use href="#i-archive"/></svg> Novo backup</button>
               <button type="button" role="menuitem" data-menu-action="config"><svg class="icon"><use href="#i-download"/></svg> Exportar configuração</button>
               <span class="menu__sep" role="separator"></span>
-              <button type="button" role="menuitem" data-menu-action="close"><svg class="icon"><use href="#i-power"/></svg> Sair <kbd>Alt+F4</kbd></button>
+              <button type="button" role="menuitem" data-menu-action="dashboard"><svg class="icon"><use href="#i-home"/></svg> Visão geral</button>
             </div>
           </div>
           <div class="menu">
             <button class="menu__trigger" type="button" data-menu="editar" aria-expanded="false" aria-haspopup="true">Editar</button>
             <div class="menu__dropdown" role="menu">
               <button type="button" role="menuitem" data-menu-action="settings"><svg class="icon"><use href="#i-settings"/></svg> Preferências</button>
-              <button type="button" role="menuitem" data-menu-action="theme"><svg class="icon"><use href="#i-sun"/></svg> Alternar tema <kbd>Ctrl+J</kbd></button>
               <button type="button" role="menuitem" data-menu-action="search"><svg class="icon"><use href="#i-search"/></svg> Buscar serviço <kbd>Ctrl+K</kbd></button>
             </div>
           </div>
@@ -156,9 +139,6 @@
             <button class="menu__trigger" type="button" data-menu="exibir" aria-expanded="false" aria-haspopup="true">Exibir</button>
             <div class="menu__dropdown" role="menu">
               <button type="button" role="menuitem" data-menu-action="sidebar"><svg class="icon"><use href="#i-panel-collapse"/></svg> Recolher barra lateral <kbd>Ctrl+B</kbd></button>
-              <button type="button" role="menuitem" data-menu-action="maximize"><svg class="icon"><use href="#i-square"/></svg> Maximizar janela</button>
-              <span class="menu__sep" role="separator"></span>
-              <button type="button" role="menuitem" data-menu-action="fullscreen"><svg class="icon"><use href="#i-monitor"/></svg> Tela cheia <kbd>F11</kbd></button>
             </div>
           </div>
           <div class="menu">
@@ -208,7 +188,7 @@
 
               <div class="nav__group">
                 <p class="nav__label">Dashboard</p>
-                <button class="nav__item is-active" type="button" data-modal="dashboard" data-tooltip="Visão geral" style="--item-color: var(--cyan)">
+                <button class="nav__item is-active" type="button" data-page="dashboard" data-tooltip="Visão geral" style="--item-color: var(--cyan)">
                   <svg class="icon nav__icon" aria-hidden="true"><use href="#i-home"/></svg>
                   <span class="nav__text">Visão geral</span>
                   <span class="nav__badge"><span class="status-dot status-dot--online"></span>live</span>
@@ -225,11 +205,11 @@
                 <div class="nav__submenu" id="submenu-devices" inert>
                   <div class="nav__submenu-inner">
                     <ul class="nav__sublist">
-                      <li><button class="nav__subitem" type="button" data-modal="topology"><svg class="icon"><use href="#i-target"/></svg>Topologia / Devices</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="config"><svg class="icon"><use href="#i-file-text"/></svg>Config Atual</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="routing"><svg class="icon"><use href="#i-route"/></svg>Roteamento</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="arp"><svg class="icon"><use href="#i-radio"/></svg>Tabela ARP</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="sysinfo"><svg class="icon"><use href="#i-cpu"/></svg>Info do Sistema</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="topology"><svg class="icon"><use href="#i-target"/></svg>Topologia / Devices</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="config"><svg class="icon"><use href="#i-file-text"/></svg>Config Atual</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="routing"><svg class="icon"><use href="#i-route"/></svg>Roteamento</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="arp"><svg class="icon"><use href="#i-radio"/></svg>Tabela ARP</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="sysinfo"><svg class="icon"><use href="#i-cpu"/></svg>Info do Sistema</button></li>
                     </ul>
                   </div>
                 </div>
@@ -245,10 +225,10 @@
                 <div class="nav__submenu is-open" id="submenu-services">
                   <div class="nav__submenu-inner">
                     <ul class="nav__sublist">
-                      <li><button class="nav__subitem is-active" type="button" data-modal="services"><svg class="icon"><use href="#i-gauge"/></svg>Painel de Serviços</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="catalog"><svg class="icon"><use href="#i-layers"/></svg>Catálogo de Serviços</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="acl"><svg class="icon"><use href="#i-shield"/></svg>Regras ACL</button></li>
-                      <li><button class="nav__subitem nav__subitem--accent" type="button" data-wizard-preset="block"><svg class="icon"><use href="#i-shield-off"/></svg>Bloquear Internet</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="services"><svg class="icon"><use href="#i-gauge"/></svg>Painel de Serviços</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="catalog"><svg class="icon"><use href="#i-layers"/></svg>Catálogo de Serviços</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="acl"><svg class="icon"><use href="#i-shield"/></svg>Regras ACL</button></li>
+                      <li><button class="nav__subitem nav__subitem--accent" type="button" data-page="acl-new" data-wizard-preset="block"><svg class="icon"><use href="#i-shield-off"/></svg>Bloquear Internet</button></li>
                     </ul>
                   </div>
                 </div>
@@ -264,9 +244,9 @@
                 <div class="nav__submenu" id="submenu-tools" inert>
                   <div class="nav__submenu-inner">
                     <ul class="nav__sublist">
-                      <li><button class="nav__subitem" type="button" data-modal="commands"><svg class="icon"><use href="#i-terminal"/></svg>Editor de Comandos</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="backup"><svg class="icon"><use href="#i-archive"/></svg>Backup</button></li>
-                      <li><button class="nav__subitem" type="button" data-modal="audit"><svg class="icon"><use href="#i-audit"/></svg>Auditoria</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="commands"><svg class="icon"><use href="#i-terminal"/></svg>Editor de Comandos</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="backup"><svg class="icon"><use href="#i-archive"/></svg>Backup</button></li>
+                      <li><button class="nav__subitem" type="button" data-page="audit"><svg class="icon"><use href="#i-audit"/></svg>Auditoria</button></li>
                     </ul>
                   </div>
                 </div>
@@ -274,11 +254,11 @@
 
               <div class="nav__group">
                 <p class="nav__label">Administração</p>
-                <button class="nav__item" type="button" data-modal="maintenance" data-tooltip="Manutenção" style="--item-color: var(--magenta)">
+                <button class="nav__item" type="button" data-page="maintenance" data-tooltip="Manutenção" style="--item-color: var(--magenta)">
                   <svg class="icon nav__icon" aria-hidden="true"><use href="#i-wrench"/></svg>
                   <span class="nav__text">Manutenção</span>
                 </button>
-                <button class="nav__item" type="button" data-modal="settings" data-tooltip="Preferências" style="--item-color: var(--dim)">
+                <button class="nav__item" type="button" data-page="settings" data-tooltip="Preferências" style="--item-color: var(--dim)">
                   <svg class="icon nav__icon" aria-hidden="true"><use href="#i-settings"/></svg>
                   <span class="nav__text">Preferências</span>
                 </button>
@@ -288,25 +268,13 @@
           </div>
 
           <div class="sidebar__foot">
-            <button class="target-card" type="button" data-modal="topology" title="Trocar device alvo">
+            <button class="target-card" type="button" data-page="topology" title="Trocar device alvo">
               <span class="status-dot status-dot--online" aria-hidden="true"></span>
               <span class="target-card__copy">
                 <span class="target-card__label">Alvo do device</span>
                 <strong data-target-name>ROTEADOR-LAB</strong>
               </span>
               <svg class="icon target-card__icon" aria-hidden="true"><use href="#i-refresh"/></svg>
-            </button>
-
-            <button class="theme-row" type="button" data-theme-toggle aria-label="Alternar para o tema claro">
-              <span class="theme-row__icon" aria-hidden="true">
-                <svg class="icon theme-icon theme-icon--sun"><use href="#i-sun"/></svg>
-                <svg class="icon theme-icon theme-icon--moon"><use href="#i-moon"/></svg>
-              </span>
-              <span class="theme-row__copy">
-                <span class="theme-row__title">Aparência</span>
-                <span class="theme-row__value" data-theme-label>Tema claro</span>
-              </span>
-              <span class="switch" aria-hidden="true"><span class="switch__thumb"></span></span>
             </button>
 
             <div class="user-card">
@@ -336,10 +304,10 @@
 
               <span class="topbar__divider" aria-hidden="true"></span>
 
-              <nav class="breadcrumbs" aria-label="Trilha de navegação">
-                <span>Serviços</span>
+              <nav class="breadcrumbs" id="breadcrumbs" aria-label="Trilha de navegação">
+                <span id="breadcrumbGroup">Aplicativo</span>
                 <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
-                <span aria-current="page">Visão geral</span>
+                <span id="breadcrumbPage" aria-current="page">Visão geral</span>
               </nav>
             </div>
 
@@ -357,41 +325,23 @@
 
               <button class="btn btn--outline btn--sm" id="connectBtn" type="button">Conectar</button>
 
-              <button class="icon-btn theme-btn" type="button" data-theme-toggle aria-label="Alternar para o tema claro" title="Alternar tema (Ctrl+J)">
-                <svg class="icon theme-icon theme-icon--sun" aria-hidden="true"><use href="#i-sun"/></svg>
-                <svg class="icon theme-icon theme-icon--moon" aria-hidden="true"><use href="#i-moon"/></svg>
-              </button>
-
-              <button class="avatar-btn" type="button" data-modal="settings" aria-label="Abrir preferências do usuário">LS</button>
+              <button class="avatar-btn" type="button" data-page="settings" aria-label="Abrir preferências do usuário">LS</button>
             </div>
           </header>
 
-          <main class="content" id="main-content" tabindex="-1">
-            <div class="content__scroll">
+          <main class="content" id="main-content" tabindex="-1" data-page="dashboard">
+            <div class="content__scroll" id="contentScroll">
 
-              <!-- Cabeçalho da página -->
-              <section class="page-heading">
-                <div class="page-heading__copy">
-                  <p class="eyebrow"><span class="eyebrow__mark" aria-hidden="true"></span> Serviços · Operações de rede</p>
-                  <h1>Serviços de Rede</h1>
-                  <p class="page-subtitle">Aplique políticas de acesso, bloqueie destinos e revise o impacto antes de tocar na configuração do device.</p>
-                </div>
-                <div class="page-heading__actions">
-                  <button class="target-chip" type="button" data-modal="topology" title="Trocar device alvo">
-                    <span class="status-dot status-dot--online" aria-hidden="true"></span>
-                    <span class="target-chip__label">Alvo</span>
-                    <strong data-target-name>ROTEADOR-LAB</strong>
-                    <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg>
-                  </button>
-                  <button class="btn btn--primary" type="button" data-wizard-preset="custom">
-                    <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>
-                    Nova regra ACL
-                  </button>
-                </div>
-              </section>
+              <!-- A página ativa é renderizada aqui pelo roteador SPA -->
+              <div class="page-host" id="pageHost"></div>
 
+              <!-- Wizard de ACL é uma página dedicada, não um modal -->
+              <div class="wizard-mount" id="wizardMount"></div>
+
+              <!-- Página de Serviços (template) -->
+              <template id="tpl-services">
               <!-- KPIs -->
-              <section class="stats-grid" aria-label="Resumo operacional">
+              <section class="stats-grid stats-grid--page" aria-label="Resumo operacional">
                 <article class="stat-card" style="--card-accent: var(--cyan)">
                   <div class="stat-card__top">
                     <span class="stat-card__label">Devices conectados</span>
@@ -460,7 +410,7 @@
                     <span class="quick-card__footer">Configurar regra <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
                   </button>
 
-                  <button class="quick-card" type="button" data-modal="acl" style="--quick-color: var(--cyan)">
+                  <button class="quick-card" type="button" data-page="acl" style="--quick-color: var(--cyan)">
                     <span class="quick-card__top">
                       <span class="quick-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg></span>
                       <span class="badge">Gestão</span>
@@ -470,7 +420,7 @@
                     <span class="quick-card__footer">Ver regras <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
                   </button>
 
-                  <button class="quick-card" type="button" data-modal="backup" style="--quick-color: var(--purple)">
+                  <button class="quick-card" type="button" data-page="backup" style="--quick-color: var(--purple)">
                     <span class="quick-card__top">
                       <span class="quick-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-archive"/></svg></span>
                       <span class="badge badge--violet">Backup</span>
@@ -490,7 +440,7 @@
                       <h2 id="rulesTitle">Regras ACL <span class="count-pill" id="rulesCount">4</span></h2>
                       <p>Políticas aplicadas no momento e seus contadores.</p>
                     </div>
-                    <button class="text-button" type="button" data-modal="acl">Ver detalhes <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+                    <button class="text-button" type="button" data-page="acl">Ver detalhes <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
                   </header>
 
                   <div class="table-wrap">
@@ -517,12 +467,12 @@
                       <h2 id="activityTitle">Atividade recente</h2>
                       <p>Trilha auditável do ambiente.</p>
                     </div>
-                    <button class="icon-btn" type="button" data-modal="audit" aria-label="Abrir auditoria" title="Abrir auditoria">
+                    <button class="icon-btn" type="button" data-page="audit" aria-label="Abrir auditoria" title="Abrir auditoria">
                       <svg class="icon" aria-hidden="true"><use href="#i-audit"/></svg>
                     </button>
                   </header>
                   <ol class="timeline" id="activityList"></ol>
-                  <button class="text-button panel__footer-link" type="button" data-modal="audit">Abrir auditoria completa <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+                  <button class="text-button panel__footer-link" type="button" data-page="audit">Abrir auditoria completa <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
                 </aside>
               </div>
 
@@ -533,7 +483,7 @@
                     <h2 id="catalogTitle">Catálogo de serviços <span class="count-pill" id="servicesCount">8</span></h2>
                     <p>Atalhos para operações de ACL, segurança e diagnóstico.</p>
                   </div>
-                  <button class="btn btn--ghost btn--sm" type="button" data-modal="catalog">
+                  <button class="btn btn--ghost btn--sm" type="button" data-page="catalog">
                     <svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg> Abrir catálogo completo
                   </button>
                 </header>
@@ -559,6 +509,7 @@
                   <button class="btn btn--secondary btn--sm" type="button" data-clear-service-filters>Limpar filtros</button>
                 </div>
               </section>
+              </template>
 
             </div>
           </main>
@@ -588,59 +539,10 @@
       </div>
     </section>
 
-    <!-- Barra de tarefas do desktop -->
-    <footer class="taskbar" aria-label="Barra de tarefas">
-      <button class="taskbar__start" type="button" title="Área de trabalho" aria-label="Área de trabalho">
-        <svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg>
-      </button>
-      <span class="taskbar__separator" aria-hidden="true"></span>
-      <button class="taskbar__app is-running" id="taskbarApp" type="button" title="Restaurar Huawei Manager">
-        <span class="taskbar__app-icon"><svg class="icon" aria-hidden="true"><use href="#i-logo"/></svg></span>
-        <span>Huawei Manager</span>
-        <span class="taskbar__app-indicator" aria-hidden="true"></span>
-      </button>
-      <div class="taskbar__spacer"></div>
-      <div class="taskbar__tray">
-        <svg class="icon" aria-hidden="true"><use href="#i-wifi"/></svg>
-        <svg class="icon" aria-hidden="true"><use href="#i-volume"/></svg>
-        <span class="taskbar__clock">
-          <span id="taskbarTime">--:--</span>
-          <span id="taskbarDate">--/--/----</span>
-        </span>
-      </div>
-    </footer>
-  </div>
-
   <!-- ═══════════════════════════════════════════════════════════════════
-       MODAL GENÉRICO DE CONTEÚDO
+       WIZARD DE ACL — página dedicada (o JS move este bloco para o conteúdo)
        ═══════════════════════════════════════════════════════════════════ -->
-  <dialog class="dialog" id="contentDialog" aria-labelledby="contentDialogTitle">
-    <div class="dialog__frame">
-      <header class="dialog__titlebar">
-        <div class="dialog__identity">
-          <span class="dialog__icon" id="contentDialogIcon"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg></span>
-          <div>
-            <p class="dialog__eyebrow" id="contentDialogEyebrow">Huawei Manager</p>
-            <h2 id="contentDialogTitle">Detalhes</h2>
-          </div>
-        </div>
-        <button class="window-control window-control--close" type="button" data-close-dialog="content" aria-label="Fechar janela">
-          <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
-        </button>
-      </header>
-      <p class="dialog__subtitle" id="contentDialogSubtitle"></p>
-      <div class="dialog__body" id="contentDialogBody"></div>
-      <footer class="dialog__footer">
-        <span class="dialog__footnote"><svg class="icon" aria-hidden="true"><use href="#i-audit"/></svg> Ações registradas na auditoria local</span>
-        <button class="btn btn--secondary" type="button" data-close-dialog="content">Fechar</button>
-      </footer>
-    </div>
-  </dialog>
-
-  <!-- ═══════════════════════════════════════════════════════════════════
-       WIZARD DE ACL
-       ═══════════════════════════════════════════════════════════════════ -->
-  <dialog class="dialog dialog--wizard" id="wizardDialog" aria-labelledby="wizardTitle">
+  <section class="wizard-page" id="wizardPage" hidden aria-labelledby="wizardTitle">
     <div class="dialog__frame">
       <header class="dialog__titlebar">
         <div class="dialog__identity">
@@ -946,66 +848,136 @@
         </div>
       </section>
     </div>
-  </dialog>
+  </section>
 
-  <!-- CONFIRMAÇÃO DE DESCARTE DO WIZARD -->
-  <dialog class="dialog dialog--confirm" id="confirmDiscardDialog" aria-labelledby="confirmDiscardTitle" aria-describedby="confirmDiscardText">
-    <div class="dialog__frame">
-      <header class="dialog__titlebar">
-        <div class="dialog__identity">
-          <span class="dialog__icon dialog__icon--warning"><svg class="icon" aria-hidden="true"><use href="#i-alert-triangle"/></svg></span>
-          <div>
-            <p class="dialog__eyebrow">Wizard de ACL</p>
-            <h2 id="confirmDiscardTitle">Descartar configuração?</h2>
-          </div>
+  <!-- CONFIRMAÇÃO EM DRAWER LATERAL (sem modal central) -->
+  <div class="drawer-scrim" id="drawerScrim" aria-hidden="true"></div>
+  <aside class="drawer" id="discardDrawer" role="dialog" aria-modal="true" aria-labelledby="confirmDiscardTitle" aria-describedby="confirmDiscardText" aria-hidden="true">
+    <header class="drawer__head">
+      <div class="drawer__identity">
+        <span class="drawer__icon"><svg class="icon" aria-hidden="true"><use href="#i-alert-triangle"/></svg></span>
+        <div>
+          <p class="drawer__eyebrow">Wizard de ACL</p>
+          <h2 id="confirmDiscardTitle">Descartar configuração?</h2>
         </div>
-        <button class="window-control window-control--close" type="button" data-close-confirm aria-label="Continuar editando">
-          <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
-        </button>
-      </header>
-      <div class="confirm__body" id="confirmDiscardText">
-        <p>A regra em andamento ainda não foi aplicada. Se sair agora, os passos preenchidos serão perdidos.</p>
-        <p class="confirm__hint">Você pode voltar e concluir a revisão para enviar a ACL ao device.</p>
       </div>
-      <footer class="dialog__footer">
-        <span class="dialog__footnote"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg> O device não foi alterado</span>
-        <div class="confirm__actions">
-          <button class="btn btn--secondary" type="button" data-close-confirm>Continuar editando</button>
-          <button class="btn btn--danger" id="confirmDiscardBtn" type="button">
-            <svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg> Descartar e sair
-          </button>
-        </div>
-      </footer>
+      <button class="icon-btn" type="button" data-close-drawer aria-label="Continuar editando">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </header>
+    <div class="drawer__body" id="confirmDiscardText">
+      <p>A regra em andamento ainda não foi aplicada. Se sair agora, os passos preenchidos serão perdidos.</p>
+      <p class="drawer__hint">Você pode voltar e concluir a revisão para enviar a ACL ao device. Nenhuma alteração foi enviada.</p>
     </div>
-  </dialog>
+    <footer class="drawer__foot">
+      <button class="btn btn--secondary" type="button" data-close-drawer>Continuar editando</button>
+      <button class="btn btn--danger" id="confirmDiscardBtn" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg> Descartar e sair
+      </button>
+    </footer>
+  </aside>
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="false"></div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       TEMPLATES DE CONTEÚDO DOS MODAIS
+       TEMPLATES DE CONTEÚDO DAS PÁGINAS
        ═══════════════════════════════════════════════════════════════════ -->
 
   <template id="tpl-dashboard">
-    <div class="modal-stats">
-      <article class="modal-stat"><span class="modal-stat__label">Conexão</span><strong class="modal-stat__value text-red">Desconectado</strong><span class="modal-stat__meta">Host: ---</span></article>
-      <article class="modal-stat"><span class="modal-stat__label">Dispositivos</span><strong class="modal-stat__value">3 <small>online</small></strong><span class="modal-stat__meta text-amber">1 em manutenção</span></article>
-      <article class="modal-stat"><span class="modal-stat__label">Últimas operações</span><strong class="modal-stat__value">12</strong><span class="modal-stat__meta">Nas últimas 24 h</span></article>
-    </div>
-    <div class="split-2">
-      <section class="modal-section">
-        <h3>Atalhos do dashboard</h3>
-        <div class="button-grid">
-          <button class="btn btn--secondary" type="button" data-wizard-preset="block"><svg class="icon"><use href="#i-shield-off"/></svg> Bloquear Internet</button>
-          <button class="btn btn--secondary" type="button" data-modal="topology"><svg class="icon"><use href="#i-target"/></svg> Selecionar device</button>
-          <button class="btn btn--secondary" type="button" data-modal="backup"><svg class="icon"><use href="#i-archive"/></svg> Criar backup</button>
-          <button class="btn btn--secondary" type="button" data-modal="commands"><svg class="icon"><use href="#i-terminal"/></svg> Editor de comandos</button>
+    <section class="home-hero" aria-labelledby="homeHeroTitle">
+      <div class="home-hero__copy">
+        <span class="home-hero__badge">HUAWEI MANAGER 2.0 · CONSOLE DE REDE</span>
+        <h2 id="homeHeroTitle">Operações de rede com <em>foco no que importa.</em></h2>
+        <p>Um único espaço para aplicar políticas, revisar dispositivos e acompanhar a configuração do ambiente. Comece por uma ação rápida ou navegue pelas páginas dedicadas.</p>
+        <div class="home-hero__actions">
+          <button class="btn btn--primary" type="button" data-wizard-preset="custom">
+            <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> Nova regra ACL
+          </button>
+          <button class="btn btn--secondary" type="button" data-page="services">
+            <svg class="icon" aria-hidden="true"><use href="#i-gauge"/></svg> Painel de Serviços
+          </button>
         </div>
-      </section>
-      <section class="modal-section">
-        <h3>Últimas operações</h3>
-        <ol class="timeline timeline--compact" id="dashboardTimeline"></ol>
-      </section>
-    </div>
+      </div>
+      <div class="home-hero__target">
+        <span class="home-hero__target-label">Device alvo da sessão</span>
+        <strong data-target-name>ROTEADOR-LAB</strong>
+        <span class="home-hero__target-host mono" data-target-host>192.168.1.1</span>
+        <button class="text-button" type="button" data-page="topology">Trocar device <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="homeQuickTitle">
+      <div class="section-heading">
+        <div>
+          <h2 id="homeQuickTitle">Ações rápidas</h2>
+          <p>Os fluxos mais usados ficam a um clique da visão geral.</p>
+        </div>
+      </div>
+      <div class="quick-grid">
+        <button class="quick-card" type="button" data-wizard-preset="block" style="--quick-color: var(--red)">
+          <span class="quick-card__top">
+            <span class="quick-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-shield-off"/></svg></span>
+            <span class="badge badge--danger">ACL</span>
+          </span>
+          <span class="quick-card__title">Bloquear Internet</span>
+          <span class="quick-card__desc">Abra o wizard guiado e defina o bloqueio com exceções revisadas.</span>
+          <span class="quick-card__footer">Abrir página <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
+        </button>
+
+        <button class="quick-card" type="button" data-page="catalog" style="--quick-color: var(--cyan)">
+          <span class="quick-card__top">
+            <span class="quick-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg></span>
+            <span class="badge">Serviços</span>
+          </span>
+          <span class="quick-card__title">Catálogo de serviços</span>
+          <span class="quick-card__desc">Encontre operações de ACL, segurança, QoS e diagnóstico.</span>
+          <span class="quick-card__footer">Explorar catálogo <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
+        </button>
+
+        <button class="quick-card" type="button" data-page="topology" style="--quick-color: var(--amber)">
+          <span class="quick-card__top">
+            <span class="quick-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg></span>
+            <span class="badge badge--warning">Devices</span>
+          </span>
+          <span class="quick-card__title">Selecionar device alvo</span>
+          <span class="quick-card__desc">Troque o dispositivo usado pelo catálogo, wizard e ações.</span>
+          <span class="quick-card__footer">Ver dispositivos <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
+        </button>
+
+        <button class="quick-card" type="button" data-page="backup" style="--quick-color: var(--purple)">
+          <span class="quick-card__top">
+            <span class="quick-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-archive"/></svg></span>
+            <span class="badge badge--violet">Backup</span>
+          </span>
+          <span class="quick-card__title">Backup da configuração</span>
+          <span class="quick-card__desc">Salve o running-config antes de aplicar mudanças de política.</span>
+          <span class="quick-card__footer">Abrir backups <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
+        </button>
+      </div>
+    </section>
+
+    <section class="home-links" aria-label="Páginas dedicadas">
+      <button class="home-link" type="button" data-page="acl">
+        <span class="home-link__icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span>
+        <span><strong>Regras ACL</strong><small>Políticas ativas e contadores</small></span>
+        <svg class="icon home-link__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+      <button class="home-link" type="button" data-page="audit">
+        <span class="home-link__icon"><svg class="icon" aria-hidden="true"><use href="#i-audit"/></svg></span>
+        <span><strong>Auditoria</strong><small>Trilha completa de eventos</small></span>
+        <svg class="icon home-link__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+      <button class="home-link" type="button" data-page="commands">
+        <span class="home-link__icon"><svg class="icon" aria-hidden="true"><use href="#i-terminal"/></svg></span>
+        <span><strong>Editor de comandos</strong><small>Consultas em modo dry-run</small></span>
+        <svg class="icon home-link__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+      <button class="home-link" type="button" data-page="settings">
+        <span class="home-link__icon"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg></span>
+        <span><strong>Preferências</strong><small>Temas e comportamento da interface</small></span>
+        <svg class="icon home-link__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+    </section>
   </template>
 
   <template id="tpl-topology">
@@ -1090,28 +1062,30 @@ return</pre>
   <template id="tpl-catalog">
     <p class="modal-lead">Serviços de configuração e leitura disponíveis para o device alvo. Ações que alteram a configuração abrem o wizard de revisão.</p>
     <div class="catalog-toolbar">
-      <div class="filter-chips">
-        <button class="filter-chip is-active" type="button" data-modal-filter="all" aria-pressed="true">Todos</button>
-        <button class="filter-chip" type="button" data-modal-filter="acl" aria-pressed="false">ACL</button>
-        <button class="filter-chip" type="button" data-modal-filter="security" aria-pressed="false">Segurança</button>
-        <button class="filter-chip" type="button" data-modal-filter="qos" aria-pressed="false">QoS</button>
-        <button class="filter-chip" type="button" data-modal-filter="diagnostics" aria-pressed="false">Diagnóstico</button>
+      <div class="filter-chips" role="group" aria-label="Filtrar catálogo por categoria">
+        <button class="filter-chip is-active" type="button" data-page-filter="all" aria-pressed="true">Todos</button>
+        <button class="filter-chip" type="button" data-page-filter="acl" aria-pressed="false">ACL</button>
+        <button class="filter-chip" type="button" data-page-filter="security" aria-pressed="false">Segurança</button>
+        <button class="filter-chip" type="button" data-page-filter="qos" aria-pressed="false">QoS</button>
+        <button class="filter-chip" type="button" data-page-filter="interfaces" aria-pressed="false">Interfaces</button>
+        <button class="filter-chip" type="button" data-page-filter="diagnostics" aria-pressed="false">Diagnóstico</button>
+        <button class="filter-chip" type="button" data-page-filter="backup" aria-pressed="false">Backup</button>
       </div>
-      <span class="catalog-toolbar__count">8 serviços</span>
+      <span class="catalog-toolbar__count" id="pageCatalogCount">8 serviços</span>
     </div>
-    <div class="services-grid services-grid--modal" id="modalServicesGrid"></div>
+    <div class="services-grid" id="pageServicesGrid"></div>
   </template>
 
   <template id="tpl-acl">
     <div class="toolbar">
-      <span class="chip chip--mono" id="aclModalCount">4 regras</span>
+      <span class="chip chip--mono" id="aclPageCount">4 regras</span>
       <span class="toolbar__spacer"></span>
       <button class="btn btn--primary btn--sm" type="button" data-wizard-preset="custom"><svg class="icon"><use href="#i-plus"/></svg> Nova regra ACL</button>
     </div>
     <div class="table-wrap">
       <table class="data-table data-table--modal">
         <thead><tr><th>ACL</th><th>Política</th><th>Aplicação</th><th>Direção</th><th class="is-numeric">Hits</th><th>Status</th><th class="is-numeric">Ações</th></tr></thead>
-        <tbody id="aclModalRules"></tbody>
+        <tbody id="aclPageRules"></tbody>
       </table>
     </div>
     <div class="inline-note"><svg class="icon"><use href="#i-info"/></svg><p>Desativar uma regra não remove a ACL do device; apenas pausa a aplicação no traffic-filter.</p></div>
@@ -1194,7 +1168,12 @@ return</pre>
         </button>
         <button class="settings-theme" type="button" data-set-theme="light" aria-pressed="false">
           <span class="settings-theme__swatch settings-theme__swatch--light" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span><strong>White Theme</strong><small>Cinza, slate e azul aço</small></span>
+          <span><strong>White Theme</strong><small>Alto contraste em branco e cinza</small></span>
+          <span class="radio-indicator" aria-hidden="true"></span>
+        </button>
+        <button class="settings-theme" type="button" data-set-theme="huawei" aria-pressed="false">
+          <span class="settings-theme__swatch settings-theme__swatch--huawei" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>Huawei Theme</strong><small>Paleta clara com vermelho Huawei</small></span>
           <span class="radio-indicator" aria-hidden="true"></span>
         </button>
       </div>
@@ -1235,13 +1214,11 @@ return</pre>
   <template id="tpl-shortcuts">
     <div class="shortcut-grid">
       <div><kbd>Ctrl</kbd><kbd>B</kbd><span>Recolher / expandir sidebar</span></div>
-      <div><kbd>Ctrl</kbd><kbd>J</kbd><span>Alternar tema</span></div>
       <div><kbd>Ctrl</kbd><kbd>K</kbd><span>Buscar serviço</span></div>
       <div><kbd>Ctrl</kbd><kbd>N</kbd><span>Nova regra ACL</span></div>
-      <div><kbd>Esc</kbd><span>Fechar diálogo ou menu</span></div>
-      <div><kbd>F11</kbd><span>Maximizar / restaurar</span></div>
+      <div><kbd>Esc</kbd><span>Fechar menu, drawer ou wizard</span></div>
     </div>
-    <p class="modal-lead modal-lead--tight">Atalhos de navegador (como Ctrl+B em alguns ambientes) podem ser interceptados pelo sistema. Use os controles visíveis como alternativa.</p>
+    <p class="modal-lead modal-lead--tight">A navegação acontece por páginas dedicadas. Atalhos de navegador (como Ctrl+B em alguns ambientes) podem ser interceptados pelo sistema; use os controles visíveis como alternativa.</p>
   </template>
 
   <script src="script.js" defer></script>

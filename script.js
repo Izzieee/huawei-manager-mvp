@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════
    HUAWEI MANAGER 2.0 · DESKTOP UI
-   script.js — tema, janela desktop, sidebar, modais e wizard de ACL.
+   script.js — temas, navegação SPA por páginas dedicadas, sidebar,
+   drawer de confirmação e wizard de ACL.
    Vanilla JS (ES2020). Sem dependências.
    ═══════════════════════════════════════════════════════════════════════ */
 (() => {
@@ -47,6 +48,12 @@
     collapsed: "hw-manager-sidebar-collapsed",
     reducedMotion: "hw-manager-reduced-motion",
     confirmClose: "hw-manager-confirm-close",
+  };
+
+  const THEMES = {
+    dark: { label: "Black Theme", meta: "#05050d", icon: "moon" },
+    light: { label: "White Theme", meta: "#ffffff", icon: "sun" },
+    huawei: { label: "Huawei Theme", meta: "#ffffff", icon: "sun" },
   };
 
   /* ───────────────────────── Dados de demonstração ───────────────────────── */
@@ -118,7 +125,7 @@
       iconName: "layers",
       color: "cyan",
       description: "Aplique e remova ACLs por interface e direção de tráfego.",
-      action: { type: "modal", modal: "acl" },
+      action: { type: "page", page: "acl" },
     },
     {
       id: "nat",
@@ -128,7 +135,7 @@
       iconName: "activity",
       color: "magenta",
       description: "Inspecione traduções ativas e consumo da tabela NAT.",
-      action: { type: "modal", modal: "commands", command: "display nat session all" },
+      action: { type: "page", page: "commands", command: "display nat session all" },
     },
     {
       id: "qos",
@@ -138,7 +145,7 @@
       iconName: "sliders",
       color: "purple",
       description: "Verifique filas, policies e limites de banda por classe.",
-      action: { type: "modal", modal: "commands", command: "display traffic policy" },
+      action: { type: "page", page: "commands", command: "display traffic policy" },
     },
     {
       id: "interface",
@@ -148,7 +155,7 @@
       iconName: "cpu",
       color: "cyan",
       description: "Consulte estado operacional, erros e contadores de porta.",
-      action: { type: "modal", modal: "commands", command: "display interface brief" },
+      action: { type: "page", page: "commands", command: "display interface brief" },
     },
     {
       id: "diagnostics",
@@ -158,7 +165,7 @@
       iconName: "wifi",
       color: "green",
       description: "Execute ping e traceroute para validar conectividade.",
-      action: { type: "modal", modal: "commands", command: "ping -c 4 8.8.8.8" },
+      action: { type: "page", page: "commands", command: "ping -c 4 8.8.8.8" },
     },
     {
       id: "backup",
@@ -168,7 +175,7 @@
       iconName: "archive",
       color: "amber",
       description: "Exporte o running-config antes de aplicar uma nova ACL.",
-      action: { type: "modal", modal: "backup" },
+      action: { type: "page", page: "backup" },
     },
   ];
 
@@ -325,20 +332,20 @@
     },
   };
 
-  const MODALS = {
+  const PAGES = {
     dashboard: {
       title: "Visão geral",
       eyebrow: "Dashboard",
-      subtitle: "Conectividade, dispositivos e operações recentes do ambiente.",
+      subtitle: "Ponto de partida para as operações, páginas e dispositivos da sessão.",
       icon: "home",
       template: "tpl-dashboard",
     },
     services: {
       title: "Painel de Serviços",
       eyebrow: "Serviços",
-      subtitle: "Visão compacta das políticas ativas e dos fluxos mais usados.",
+      subtitle: "Indicadores, regras ativas, atividade recente e catálogo de operações.",
       icon: "gauge",
-      template: "tpl-dashboard",
+      template: "tpl-services",
     },
     topology: {
       title: "Topologia / Devices",
@@ -434,57 +441,57 @@
     shortcuts: {
       title: "Atalhos de Teclado",
       eyebrow: "Ajuda",
-      subtitle: "Comandos rápidos para operar a interface como um app desktop.",
+      subtitle: "Comandos rápidos para operar a interface com o teclado.",
       icon: "key",
       template: "tpl-shortcuts",
     },
   };
 
   const state = {
-    theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
+    theme: "dark",
     collapsed: readStorage(STORAGE.collapsed) === "true",
     connected: false,
     targetDeviceId: "router-lab",
     serviceFilter: "all",
-    modalFilter: "all",
+    pageFilter: "all",
     search: "",
     reducedMotion: readStorage(STORAGE.reducedMotion) === "true",
     confirmClose: readStorage(STORAGE.confirmClose) !== "false",
     lastUpdated: "há 2 min",
     pendingCommand: null,
     wizard: null,
+    currentPage: "dashboard",
+    wizardReturnPage: "dashboard",
+    pendingDrawerAction: null,
+    drawerTrigger: null,
   };
 
   const els = {
     html: document.documentElement,
     body: document.body,
-    desktop: $("#desktop"),
     appWindow: $("#appWindow"),
     sidebar: $("#sidebar"),
     sidebarToggle: $("#sidebarToggle"),
     sidebarScrim: $("#sidebarScrim"),
     mobileMenuToggle: $("#mobileMenuToggle"),
     globalSearch: $("#globalSearch"),
-    servicesGrid: $("#servicesGrid"),
-    servicesEmpty: $("#servicesEmpty"),
-    servicesCount: $("#servicesCount"),
-    catalogCount: $("#catalogCount"),
-    rulesBody: $("#rulesBody"),
-    rulesCount: $("#rulesCount"),
-    activityList: $("#activityList"),
-    statRules: $("#statRules"),
-    statHits: $("#statHits"),
-    statUpdated: $("#statUpdated"),
+    mainContent: $("#main-content"),
+    contentScroll: $("#contentScroll"),
+    pageHost: $("#pageHost"),
+    wizardMount: $("#wizardMount"),
+    wizardPage: $("#wizardPage"),
+    breadcrumbGroup: $("#breadcrumbGroup"),
+    breadcrumbPage: $("#breadcrumbPage"),
     connDot: $("#connDot"),
     connLabel: $("#connLabel"),
     connectBtn: $("#connectBtn"),
-    contentDialog: $("#contentDialog"),
-    contentDialogIcon: $("#contentDialogIcon"),
-    contentDialogEyebrow: $("#contentDialogEyebrow"),
-    contentDialogTitle: $("#contentDialogTitle"),
-    contentDialogSubtitle: $("#contentDialogSubtitle"),
-    contentDialogBody: $("#contentDialogBody"),
-    wizardDialog: $("#wizardDialog"),
+    windowContext: $("#windowContext"),
+    menubarTarget: $("#menubarTarget"),
+    toastRegion: $("#toastRegion"),
+    statusClock: $("#statusClock"),
+    drawerScrim: $("#drawerScrim"),
+    discardDrawer: $("#discardDrawer"),
+    confirmDiscardBtn: $("#confirmDiscardBtn"),
     wizardTitle: $("#wizardTitle"),
     wizardForm: $("#wizardForm"),
     wizardStepper: $("#wizardStepper"),
@@ -495,8 +502,6 @@
     wizardCounter: $("#wizardCounter"),
     wizardFormError: $("#wizardFormError"),
     wizardSuccess: $("#wizardSuccess"),
-    confirmDiscardDialog: $("#confirmDiscardDialog"),
-    confirmDiscardBtn: $("#confirmDiscardBtn"),
     wizardDevice: $("#wizardDevice"),
     wizardInterface: $("#wizardInterface"),
     wizardName: $("#wizardName"),
@@ -525,49 +530,23 @@
     successAcl: $("#successAcl"),
     successRules: $("#successRules"),
     successInterface: $("#successInterface"),
-    windowContext: $("#windowContext"),
-    menubarTarget: $("#menubarTarget"),
-    toastRegion: $("#toastRegion"),
-    taskbarApp: $("#taskbarApp"),
-    desktopShortcut: $("#desktopShortcut"),
-    winMinimize: $("#winMinimize"),
-    winMaximize: $("#winMaximize"),
-    winClose: $("#winClose"),
-    statusClock: $("#statusClock"),
-    taskbarTime: $("#taskbarTime"),
-    taskbarDate: $("#taskbarDate"),
   };
 
   /* ───────────────────────── Tema ───────────────────────── */
   function setTheme(theme, persist = true) {
-    const next = theme === "light" ? "light" : "dark";
+    const next = THEMES[theme] ? theme : "dark";
     state.theme = next;
     els.html.dataset.theme = next;
     els.body.dataset.theme = next;
 
     const themeMeta = $('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.setAttribute("content", next === "dark" ? "#05050d" : "#dbe3ec");
-
-    $$("[data-theme-toggle]").forEach((button) => {
-      const label = next === "dark" ? "Alternar para o tema claro" : "Alternar para o tema escuro";
-      button.setAttribute("aria-label", label);
-      button.title = `${label} (Ctrl+J)`;
-    });
-
-    $$("[data-theme-label]").forEach((label) => {
-      label.textContent = next === "dark" ? "Tema claro" : "Tema escuro";
-    });
+    if (themeMeta) themeMeta.setAttribute("content", THEMES[next].meta);
 
     $$("[data-set-theme]").forEach((button) => {
       button.setAttribute("aria-pressed", String(button.dataset.setTheme === next));
     });
 
     if (persist) writeStorage(STORAGE.theme, next);
-  }
-
-  function toggleTheme() {
-    setTheme(state.theme === "dark" ? "light" : "dark");
-    showToast("Aparência atualizada", state.theme === "dark" ? "Black theme ativado." : "White theme ativado (slate / azul aço).", "success", state.theme === "dark" ? "moon" : "sun");
   }
 
   /* ───────────────────────── Sidebar ───────────────────────── */
@@ -650,37 +629,20 @@
     });
   }
 
-  function setActiveNav(trigger) {
-    $$(".nav__item.is-active, .nav__subitem.is-active").forEach((item) => item.classList.remove("is-active"));
+  function setActivePageInNav(pageKey) {
+    $$(".nav__item.is-active, .nav__subitem.is-active", els.sidebar).forEach((item) => {
+      item.classList.remove("is-active");
+    });
+    const trigger = els.sidebar.querySelector(`[data-page="${pageKey}"]`);
     if (trigger) trigger.classList.add("is-active");
   }
 
-  /* ───────────────────────── Janela desktop ───────────────────────── */
-  function restoreApp() {
-    els.appWindow.classList.remove("is-minimized", "is-closed");
-    els.desktop.classList.remove("is-app-closed");
-    els.taskbarApp.classList.add("is-running");
-  }
-
-  function minimizeApp() {
-    els.appWindow.classList.add("is-minimized");
-    els.appWindow.classList.remove("is-maximized");
-    els.winMaximize.setAttribute("aria-pressed", "false");
-  }
-
-  function closeApp() {
-    els.appWindow.classList.remove("is-minimized");
-    els.appWindow.classList.add("is-closed");
-    els.desktop.classList.add("is-app-closed");
-    closeMenus();
-  }
-
-  function toggleMaximize() {
-    const maximized = els.appWindow.classList.toggle("is-maximized");
-    els.winMaximize.setAttribute("aria-pressed", String(maximized));
-    els.winMaximize.setAttribute("aria-label", maximized ? "Restaurar janela" : "Maximizar janela");
-    els.winMaximize.title = maximized ? "Restaurar" : "Maximizar";
-    closeMenus();
+  function openAccordionForPage(pageKey) {
+    const trigger = els.sidebar.querySelector(`[data-page="${pageKey}"]`);
+    const submenu = trigger?.closest(".nav__submenu");
+    if (!submenu) return;
+    const parent = $(`[data-accordion][aria-controls="${submenu.id}"]`);
+    if (parent && !parent.classList.contains("is-open")) setAccordion(parent, true);
   }
 
   /* ───────────────────────── Menus ───────────────────────── */
@@ -718,23 +680,19 @@
   function handleMenuAction(action) {
     closeMenus();
     const actions = {
-      backup: () => openModal("backup"),
-      config: () => openModal("config"),
-      close: closeApp,
-      settings: () => openModal("settings"),
-      theme: toggleTheme,
+      backup: () => navigateToPage("backup"),
+      config: () => navigateToPage("config"),
+      settings: () => navigateToPage("settings"),
       search: () => {
         els.globalSearch.focus();
         els.globalSearch.select();
       },
       sidebar: toggleSidebar,
-      maximize: toggleMaximize,
-      fullscreen: toggleMaximize,
       wizard: () => openWizard("custom"),
-      commands: () => openModal("commands"),
-      catalog: () => openModal("catalog"),
-      about: () => openModal("about"),
-      shortcuts: () => openModal("shortcuts"),
+      commands: () => navigateToPage("commands"),
+      catalog: () => navigateToPage("catalog"),
+      about: () => navigateToPage("about"),
+      shortcuts: () => navigateToPage("shortcuts"),
     };
     if (actions[action]) actions[action]();
   }
@@ -774,11 +732,7 @@
   function updateClock() {
     const now = new Date();
     const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    const shortTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    const date = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
     if (els.statusClock) els.statusClock.textContent = time;
-    if (els.taskbarTime) els.taskbarTime.textContent = shortTime;
-    if (els.taskbarDate) els.taskbarDate.textContent = date;
   }
 
   /* ───────────────────────── Dados auxiliares ───────────────────────── */
@@ -795,6 +749,9 @@
     $$("[data-target-name]").forEach((element) => {
       element.textContent = device.name;
     });
+    $$("[data-target-host]").forEach((element) => {
+      element.textContent = device.host;
+    });
     if (els.menubarTarget) els.menubarTarget.textContent = device.name;
     const statusHost = $(".statusbar__center .mono");
     if (statusHost) statusHost.textContent = device.host;
@@ -803,12 +760,16 @@
   function updateStats() {
     const active = rules.filter((rule) => rule.status === "active");
     const hits = rules.reduce((total, rule) => total + Number(rule.hits || 0), 0);
-    if (els.statRules) els.statRules.textContent = String(active.length);
-    if (els.statHits) els.statHits.textContent = formatNumber(hits);
-    if (els.rulesCount) els.rulesCount.textContent = String(rules.length);
-    if (els.statUpdated) els.statUpdated.textContent = state.lastUpdated;
-    const aclModalCount = $("#aclModalCount");
-    if (aclModalCount) aclModalCount.textContent = `${rules.length} regras`;
+    const statRules = $("#statRules");
+    const statHits = $("#statHits");
+    const rulesCount = $("#rulesCount");
+    const statUpdated = $("#statUpdated");
+    const aclPageCount = $("#aclPageCount");
+    if (statRules) statRules.textContent = String(active.length);
+    if (statHits) statHits.textContent = formatNumber(hits);
+    if (rulesCount) rulesCount.textContent = String(rules.length);
+    if (statUpdated) statUpdated.textContent = state.lastUpdated;
+    if (aclPageCount) aclPageCount.textContent = `${rules.length} regras`;
   }
 
   function updateData() {
@@ -816,16 +777,13 @@
     renderStatsTimeline();
     updateStats();
     updateTargets();
-    if ($("#aclModalRules")) renderAclModal();
+    renderAclPage();
   }
 
   function renderStatsTimeline() {
-    if (els.activityList) {
-      els.activityList.innerHTML = activities.slice(0, 4).map((activity) => timelineMarkup(activity)).join("");
-    }
-    const dashboardTimeline = $("#dashboardTimeline");
-    if (dashboardTimeline) {
-      dashboardTimeline.innerHTML = activities.slice(0, 3).map((activity) => timelineMarkup(activity, true)).join("");
+    const activityList = $("#activityList");
+    if (activityList) {
+      activityList.innerHTML = activities.slice(0, 4).map((activity) => timelineMarkup(activity)).join("");
     }
   }
 
@@ -849,8 +807,9 @@
   }
 
   function renderRules() {
-    if (!els.rulesBody) return;
-    els.rulesBody.innerHTML = rules.map((rule) => {
+    const body = $("#rulesBody");
+    if (!body) return;
+    body.innerHTML = rules.map((rule) => {
       const device = getDevice(rule.deviceId);
       return `<tr>
         <td class="rule-acl">${rule.acl}</td>
@@ -872,8 +831,8 @@
     }).join("");
   }
 
-  function renderAclModal() {
-    const body = $("#aclModalRules");
+  function renderAclPage() {
+    const body = $("#aclPageRules");
     if (!body) return;
     body.innerHTML = rules.map((rule) => {
       const device = getDevice(rule.deviceId);
@@ -943,10 +902,10 @@
   }
 
   function serviceCardMarkup(service) {
-    const wizard = service.action.type === "wizard";
-    const actionAttrs = wizard
+    const isWizard = service.action.type === "wizard";
+    const actionAttrs = isWizard
       ? `data-wizard-preset="${service.action.preset}"`
-      : `data-modal="${service.action.modal}"${service.action.command ? ` data-command="${escapeHtml(service.action.command)}"` : ""}`;
+      : `data-page="${service.action.page}"${service.action.command ? ` data-command="${escapeHtml(service.action.command)}"` : ""}`;
     return `<button class="service-card" type="button" ${actionAttrs} title="${escapeHtml(service.description)}" style="--service-color: var(--${service.color})">
       <span class="service-card__icon">${icon(service.iconName)}</span>
       <span class="service-card__copy">
@@ -958,25 +917,29 @@
   }
 
   function renderServices() {
-    if (!els.servicesGrid) return;
+    const grid = $("#servicesGrid");
+    if (!grid) return;
     const list = filteredServices(state.serviceFilter);
-    els.servicesGrid.innerHTML = list.map(serviceCardMarkup).join("");
-    if (els.servicesEmpty) els.servicesEmpty.hidden = list.length > 0;
-    if (els.servicesCount) els.servicesCount.textContent = String(services.length);
-    if (els.catalogCount) els.catalogCount.textContent = `${list.length} ${list.length === 1 ? "serviço" : "serviços"}`;
+    grid.innerHTML = list.map(serviceCardMarkup).join("");
+    const empty = $("#servicesEmpty");
+    if (empty) empty.hidden = list.length > 0;
+    const count = $("#servicesCount");
+    if (count) count.textContent = String(services.length);
+    const catalogCount = $("#catalogCount");
+    if (catalogCount) catalogCount.textContent = `${list.length} ${list.length === 1 ? "serviço" : "serviços"}`;
     syncFilterButtons("[data-service-filter]", "serviceFilter", state.serviceFilter);
   }
 
-  function renderModalServices() {
-    const grid = $("#modalServicesGrid");
+  function renderPageServices() {
+    const grid = $("#pageServicesGrid");
     if (!grid) return;
-    const list = filteredServices(state.modalFilter);
+    const list = filteredServices(state.pageFilter);
     grid.innerHTML = list.length
       ? list.map(serviceCardMarkup).join("")
       : `<div class="empty-state" style="grid-column:1/-1"><span class="empty-state__icon">${icon("search")}</span><h3>Nenhum serviço</h3><p>Ajuste o filtro ou a busca.</p></div>`;
-    const count = $("#contentDialogBody .catalog-toolbar__count");
+    const count = $("#pageCatalogCount");
     if (count) count.textContent = `${list.length} ${list.length === 1 ? "serviço" : "serviços"}`;
-    syncFilterButtons("[data-modal-filter]", "modalFilter", state.modalFilter);
+    syncFilterButtons("[data-page-filter]", "pageFilter", state.pageFilter);
   }
 
   function syncFilterButtons(selector, stateKey, value) {
@@ -989,51 +952,89 @@
 
   function clearServiceFilters() {
     state.serviceFilter = "all";
-    state.modalFilter = "all";
+    state.pageFilter = "all";
     state.search = "";
     if (els.globalSearch) els.globalSearch.value = "";
     renderServices();
-    renderModalServices();
+    renderPageServices();
   }
 
-  /* ───────────────────────── Modais de conteúdo ───────────────────────── */
-  function openModal(key) {
-    const definition = MODALS[key];
+  function refreshCatalogForSearch() {
+    renderServices();
+    renderPageServices();
+  }
+
+  /* ───────────────────────── Roteador SPA ───────────────────────── */
+  function pageHeaderMarkup(definition) {
+    return `<header class="page-heading">
+      <div class="page-heading__copy">
+        <p class="eyebrow"><span class="eyebrow__mark" aria-hidden="true"></span>${escapeHtml(definition.eyebrow)}</p>
+        <h1>${escapeHtml(definition.title)}</h1>
+        <p class="page-subtitle">${escapeHtml(definition.subtitle)}</p>
+      </div>
+      <div class="page-heading__actions">
+        <button class="target-chip" type="button" data-page="topology" title="Trocar device alvo">
+          <span class="status-dot status-dot--online" aria-hidden="true"></span>
+          <span class="target-chip__label">Alvo</span>
+          <strong data-target-name>ROTEADOR-LAB</strong>
+          <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+        </button>
+      </div>
+    </header>`;
+  }
+
+  function renderPage(pageKey, options = {}) {
+    const definition = PAGES[pageKey];
     if (!definition) return;
-
-    if (els.wizardDialog.open) return;
-
-    if (els.contentDialog.open) els.contentDialog.close();
-
     const template = document.getElementById(definition.template);
     if (!template) return;
 
-    els.contentDialogIcon.innerHTML = icon(definition.icon);
-    els.contentDialogEyebrow.textContent = definition.eyebrow;
-    els.contentDialogTitle.textContent = definition.title;
-    els.contentDialogSubtitle.textContent = definition.subtitle || "";
+    els.pageHost.hidden = false;
+    els.wizardMount.hidden = true;
+    els.wizardPage.hidden = true;
+    els.pageHost.innerHTML = `${pageHeaderMarkup(definition)}<div class="page-body"></div>`;
+    $(".page-body", els.pageHost).appendChild(template.content.cloneNode(true));
 
-    els.contentDialogBody.replaceChildren(template.content.cloneNode(true));
-    els.contentDialogBody.scrollTop = 0;
-
-    if (!els.contentDialog.open) els.contentDialog.showModal();
-    els.body.classList.add("has-dialog");
+    state.currentPage = pageKey;
+    els.mainContent.dataset.page = pageKey;
     els.windowContext.textContent = definition.title;
+    els.breadcrumbGroup.textContent = definition.eyebrow;
+    els.breadcrumbPage.textContent = definition.title;
 
-    postOpenModal(key);
+    setActivePageInNav(pageKey);
+    openAccordionForPage(pageKey);
+
+    els.contentScroll.scrollTop = 0;
+    postRenderPage(pageKey, options);
+    updateTargets();
+    closeMenus();
+    closeMobileSidebar();
   }
 
-  function postOpenModal(key) {
-    if (key === "dashboard" || key === "services") renderStatsTimeline();
-    if (key === "audit") renderAudit();
-    if (key === "topology") renderTopology();
-    if (key === "acl") renderAclModal();
-    if (key === "catalog") renderModalServices();
-    if (key === "settings") syncSettingsUI();
-    if (key === "commands") {
+  function postRenderPage(pageKey, options = {}) {
+    if (pageKey === "dashboard") {
+      updateTargets();
+    }
+    if (pageKey === "services") {
+      renderServices();
+      renderStatsTimeline();
+      renderRules();
+      updateStats();
+    }
+    if (pageKey === "catalog") renderPageServices();
+    if (pageKey === "acl") {
+      renderAclPage();
+      updateStats();
+    }
+    if (pageKey === "audit") renderAudit();
+    if (pageKey === "topology") renderTopology();
+    if (pageKey === "settings") syncSettingsUI();
+    if (pageKey === "commands") {
       const input = $("#commandInput");
       if (input) {
-        if (state.pendingCommand) {
+        if (options.command) {
+          input.value = options.command;
+        } else if (state.pendingCommand) {
           input.value = state.pendingCommand;
           state.pendingCommand = null;
         } else if (!input.value) {
@@ -1043,40 +1044,61 @@
     }
   }
 
-  function closeContentModal() {
-    if (els.contentDialog.open) els.contentDialog.close();
-  }
-
-  function syncSettingsUI() {
-    $$("[data-set-theme]").forEach((button) => {
-      button.setAttribute("aria-pressed", String(button.dataset.setTheme === state.theme));
-    });
-    const reduced = $("#prefReducedMotion");
-    if (reduced) reduced.checked = state.reducedMotion;
-    const confirm = $("#prefConfirmClose");
-    if (confirm) confirm.checked = state.confirmClose;
-  }
-
-  function applyReducedMotion(value) {
-    state.reducedMotion = Boolean(value);
-    els.html.classList.toggle("reduce-motion", state.reducedMotion);
-    writeStorage(STORAGE.reducedMotion, String(state.reducedMotion));
-  }
-
-  function setTarget(deviceId) {
-    const device = getDevice(deviceId);
-    if (!device || device.status !== "online") {
-      showToast("Device indisponível", "Este device está em manutenção e não pode receber novas regras.", "warning", "alert-triangle");
+  function navigateToPage(pageKey, options = {}) {
+    if (pageKey === "acl-new") {
+      openWizard(options.preset || "block");
       return;
     }
-    state.targetDeviceId = device.id;
-    updateTargets();
-    renderTopology();
-    closeContentModal();
-    showToast("Device alvo atualizado", `${device.name} · ${device.host}`, "success", "target");
+    if (!PAGES[pageKey]) return;
+
+    if (state.wizard && !options.force) {
+      if (isWizardDirty() && state.confirmClose) {
+        openDrawer(() => {
+          hideWizardPage();
+          navigateToPage(pageKey, { ...options, force: true });
+        });
+        return;
+      }
+      hideWizardPage();
+    }
+
+    renderPage(pageKey, options);
+  }
+
+  /* ───────────────────────── Drawer de confirmação ───────────────────────── */
+  function openDrawer(onConfirm) {
+    state.pendingDrawerAction = typeof onConfirm === "function" ? onConfirm : null;
+    state.drawerTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    els.discardDrawer.classList.add("is-open");
+    els.discardDrawer.setAttribute("aria-hidden", "false");
+    els.drawerScrim.classList.add("is-visible");
+    setTimeout(() => $("[data-close-drawer]", els.discardDrawer)?.focus(), 60);
+  }
+
+  function closeDrawer() {
+    const trigger = state.drawerTrigger;
+    els.discardDrawer.classList.remove("is-open");
+    els.discardDrawer.setAttribute("aria-hidden", "true");
+    els.drawerScrim.classList.remove("is-visible");
+    state.pendingDrawerAction = null;
+    state.drawerTrigger = null;
+    if (trigger && document.contains(trigger) && trigger.offsetParent !== null) {
+      trigger.focus();
+    }
+  }
+
+  function confirmDrawerAction() {
+    const action = state.pendingDrawerAction;
+    state.pendingDrawerAction = null;
+    closeDrawer();
+    if (action) action();
   }
 
   /* ───────────────────────── Wizard de ACL ───────────────────────── */
+  function isWizardDirty() {
+    return Boolean(state.wizard && !state.wizard.applied && state.wizard.step > 1);
+  }
+
   function nextAclId() {
     const used = new Set(rules.map((rule) => Number(rule.acl)));
     let candidate = 3004;
@@ -1089,6 +1111,10 @@
     const config = WIZARD_PRESETS[safePreset];
     const onlineDevices = devices.filter((device) => device.status === "online");
     const target = onlineDevices.find((device) => device.id === state.targetDeviceId) || onlineDevices[0] || devices[0];
+
+    closeDrawer();
+    if (state.currentPage !== "acl-new") state.wizardReturnPage = state.currentPage;
+    resetWizardUI();
 
     state.wizard = {
       preset: safePreset,
@@ -1111,20 +1137,33 @@
       },
     };
 
-    if (els.contentDialog.open) els.contentDialog.close();
     els.wizardTitle.textContent = config.title;
     els.wizardForm.hidden = false;
     els.wizardSuccess.hidden = true;
     els.wizardStepper.hidden = false;
-    wizardPropsReset();
     clearWizardErrors();
     fillWizard();
     updateWizardStepUI();
 
-    if (!els.wizardDialog.open) els.wizardDialog.showModal();
-    els.body.classList.add("has-dialog");
+    state.currentPage = "acl-new";
+    els.mainContent.dataset.page = "acl-new";
+    els.pageHost.hidden = true;
+    els.wizardMount.hidden = false;
+    els.wizardPage.hidden = false;
     els.windowContext.textContent = `Wizard de ACL · ${config.title}`;
-    setTimeout(() => $(".wizard-step:not([hidden]) h3")?.focus(), 60);
+    els.breadcrumbGroup.textContent = "Serviços";
+    els.breadcrumbPage.textContent = config.title;
+    setActivePageInNav("acl-new");
+    openAccordionForPage("acl-new");
+    els.contentScroll.scrollTop = 0;
+
+    setTimeout(() => $(".wizard-step:not([hidden]) h3", els.wizardPage)?.focus(), 60);
+  }
+
+  function hideWizardPage() {
+    els.wizardPage.hidden = true;
+    els.wizardMount.hidden = true;
+    resetWizardUI();
   }
 
   function wizardPropsReset() {
@@ -1624,19 +1663,23 @@
   }
 
   function requestCloseWizard() {
-    if (!els.wizardDialog.open) return;
-    const wizard = state.wizard;
-    if (wizard?.applying) return;
-    if (wizard && wizard.step > 1 && !wizard.applied && state.confirmClose) {
-      if (!els.confirmDiscardDialog.open) els.confirmDiscardDialog.showModal();
+    if (!state.wizard || state.wizard.applying) return;
+    if (state.wizard.applied) {
+      hideWizardPage();
+      navigateToPage("acl", { force: true });
       return;
     }
-    els.wizardDialog.close();
-  }
-
-  function discardWizard() {
-    if (els.confirmDiscardDialog.open) els.confirmDiscardDialog.close();
-    if (els.wizardDialog.open) els.wizardDialog.close();
+    if (isWizardDirty() && state.confirmClose) {
+      openDrawer(() => {
+        const back = state.wizardReturnPage || "dashboard";
+        hideWizardPage();
+        navigateToPage(back, { force: true });
+      });
+      return;
+    }
+    const back = state.wizardReturnPage || "dashboard";
+    hideWizardPage();
+    navigateToPage(back, { force: true });
   }
 
   function resetWizardUI() {
@@ -1655,6 +1698,7 @@
       item.classList.remove("is-complete", "is-current");
       item.removeAttribute("aria-current");
     });
+    wizardPropsReset();
   }
 
   /* ───────────────────────── Toasts / clipboard ───────────────────────── */
@@ -1700,7 +1744,7 @@
     }
   }
 
-  /* ───────────────────────── Ações internas dos modais ───────────────────────── */
+  /* ───────────────────────── Ações internas das páginas ───────────────────────── */
   function runCommand() {
     const input = $("#commandInput");
     const output = $("#commandOutput");
@@ -1808,6 +1852,34 @@ Resultado: cache reiniciado.`,
     showToast("Diagnóstico concluído", "A saída foi atualizada no painel de manutenção.", "success", "wrench");
   }
 
+  function syncSettingsUI() {
+    $$("[data-set-theme]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.setTheme === state.theme));
+    });
+    const reduced = $("#prefReducedMotion");
+    if (reduced) reduced.checked = state.reducedMotion;
+    const confirm = $("#prefConfirmClose");
+    if (confirm) confirm.checked = state.confirmClose;
+  }
+
+  function applyReducedMotion(value) {
+    state.reducedMotion = Boolean(value);
+    els.html.classList.toggle("reduce-motion", state.reducedMotion);
+    writeStorage(STORAGE.reducedMotion, String(state.reducedMotion));
+  }
+
+  function setTarget(deviceId) {
+    const device = getDevice(deviceId);
+    if (!device || device.status !== "online") {
+      showToast("Device indisponível", "Este device está em manutenção e não pode receber novas regras.", "warning", "alert-triangle");
+      return;
+    }
+    state.targetDeviceId = device.id;
+    updateTargets();
+    renderTopology();
+    showToast("Device alvo atualizado", `${device.name} · ${device.host}`, "success", "target");
+  }
+
   /* ───────────────────────── Eventos globais ───────────────────────── */
   function handleDocumentClick(event) {
     const target = event.target;
@@ -1815,43 +1887,41 @@ Resultado: cache reiniciado.`,
     const closeButton = target.closest("[data-close-dialog]");
     if (closeButton) {
       if (closeButton.dataset.closeDialog === "wizard") requestCloseWizard();
-      else closeContentModal();
       return;
     }
 
-    if (target.closest("[data-close-confirm]")) {
-      if (els.confirmDiscardDialog.open) els.confirmDiscardDialog.close();
-      return;
-    }
-
-    const themeToggle = target.closest("[data-theme-toggle]");
-    if (themeToggle) {
-      toggleTheme();
+    if (target.closest("[data-close-drawer]")) {
+      closeDrawer();
       return;
     }
 
     const themeChoice = target.closest("[data-set-theme]");
     if (themeChoice) {
-      setTheme(themeChoice.dataset.setTheme);
+      const theme = themeChoice.dataset.setTheme;
+      setTheme(theme);
+      syncSettingsUI();
+      showToast("Tema atualizado", `${THEMES[theme].label} ativado.`, "success", THEMES[theme].icon);
       return;
     }
 
     const wizardTrigger = target.closest("[data-wizard-preset]");
     if (wizardTrigger) {
-      const navTrigger = wizardTrigger.closest(".nav__subitem, .nav__item");
-      if (navTrigger) setActiveNav(navTrigger);
       closeMobileSidebar();
       openWizard(wizardTrigger.dataset.wizardPreset);
       return;
     }
 
-    const modalTrigger = target.closest("[data-modal]");
-    if (modalTrigger) {
-      const navTrigger = modalTrigger.closest(".nav__subitem, .nav__item");
-      if (navTrigger) setActiveNav(navTrigger);
-      if (modalTrigger.dataset.command) state.pendingCommand = modalTrigger.dataset.command;
+    // Somente controles reais navegam. O host de conteúdo também carrega
+    // data-page para indicar a página atual, mas não deve capturar cliques.
+    const pageTrigger = target.closest("button[data-page], a[data-page], [role='button'][data-page]");
+    if (pageTrigger) {
       closeMobileSidebar();
-      openModal(modalTrigger.dataset.modal);
+      const pageKey = pageTrigger.dataset.page;
+      if (pageKey === "acl-new") {
+        openWizard(pageTrigger.dataset.wizardPreset || "block");
+      } else {
+        navigateToPage(pageKey, { command: pageTrigger.dataset.command });
+      }
       return;
     }
 
@@ -1882,10 +1952,10 @@ Resultado: cache reiniciado.`,
       return;
     }
 
-    const modalFilter = target.closest("[data-modal-filter]");
-    if (modalFilter) {
-      state.modalFilter = modalFilter.dataset.modalFilter;
-      renderModalServices();
+    const pageFilter = target.closest("[data-page-filter]");
+    if (pageFilter) {
+      state.pageFilter = pageFilter.dataset.pageFilter;
+      renderPageServices();
       return;
     }
 
@@ -2089,26 +2159,7 @@ Resultado: cache reiniciado.`,
       }
     });
 
-    els.wizardDialog.addEventListener("cancel", (event) => {
-      event.preventDefault();
-      requestCloseWizard();
-    });
-
-    els.wizardDialog.addEventListener("click", (event) => {
-      if (event.target === els.wizardDialog) requestCloseWizard();
-    });
-
-    els.confirmDiscardBtn?.addEventListener("click", discardWizard);
-    els.confirmDiscardDialog?.addEventListener("click", (event) => {
-      if (event.target === els.confirmDiscardDialog) els.confirmDiscardDialog.close();
-    });
-
-    els.wizardDialog.addEventListener("close", () => {
-      if (els.confirmDiscardDialog.open) els.confirmDiscardDialog.close();
-      if (!els.contentDialog.open) els.body.classList.remove("has-dialog");
-      els.windowContext.textContent = "Serviços de Rede";
-      resetWizardUI();
-    });
+    els.confirmDiscardBtn?.addEventListener("click", confirmDrawerAction);
   }
 
   function initEvents() {
@@ -2116,40 +2167,24 @@ Resultado: cache reiniciado.`,
     els.mobileMenuToggle.addEventListener("click", () => setMobileSidebar(!els.sidebar.classList.contains("is-open")));
     els.sidebarScrim.addEventListener("click", () => setMobileSidebar(false));
     els.connectBtn.addEventListener("click", toggleConnection);
-    els.winMinimize.addEventListener("click", minimizeApp);
-    els.winMaximize.addEventListener("click", toggleMaximize);
-    els.winClose.addEventListener("click", closeApp);
-    els.taskbarApp.addEventListener("click", restoreApp);
-    els.desktopShortcut.addEventListener("click", restoreApp);
+    els.drawerScrim.addEventListener("click", closeDrawer);
 
     els.globalSearch.addEventListener("input", () => {
       state.search = els.globalSearch.value.trim().toLowerCase();
-      renderServices();
-      renderModalServices();
+      refreshCatalogForSearch();
     });
+
     els.globalSearch.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        $("#catalogSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        navigateToPage("catalog");
       }
       if (event.key === "Escape") {
         els.globalSearch.value = "";
         state.search = "";
-        renderServices();
-        renderModalServices();
+        refreshCatalogForSearch();
         els.globalSearch.blur();
       }
-    });
-
-    els.contentDialog.addEventListener("cancel", () => {
-      // Fecha pelo comportamento nativo do <dialog>.
-    });
-    els.contentDialog.addEventListener("click", (event) => {
-      if (event.target === els.contentDialog) closeContentModal();
-    });
-    els.contentDialog.addEventListener("close", () => {
-      if (!els.wizardDialog.open) els.body.classList.remove("has-dialog");
-      els.windowContext.textContent = "Serviços de Rede";
     });
 
     document.addEventListener("change", (event) => {
@@ -2172,18 +2207,23 @@ Resultado: cache reiniciado.`,
     document.addEventListener("keydown", (event) => {
       const modifier = event.ctrlKey || event.metaKey;
 
-      if (event.key === "Escape" && !els.contentDialog.open && !els.wizardDialog.open) {
+      if (event.key === "Escape") {
+        if (els.discardDrawer.classList.contains("is-open")) {
+          closeDrawer();
+          return;
+        }
         if ($$(".menu.is-open").length) {
           closeMenus();
-        } else if (isMobile() && els.sidebar.classList.contains("is-open")) {
-          setMobileSidebar(false);
+          return;
         }
-        return;
-      }
-
-      if (event.key === "F11") {
-        event.preventDefault();
-        toggleMaximize();
+        if (isMobile() && els.sidebar.classList.contains("is-open")) {
+          setMobileSidebar(false);
+          return;
+        }
+        if (state.wizard) {
+          event.preventDefault();
+          requestCloseWizard();
+        }
         return;
       }
 
@@ -2192,9 +2232,6 @@ Resultado: cache reiniciado.`,
       if (key === "b") {
         event.preventDefault();
         toggleSidebar();
-      } else if (key === "j") {
-        event.preventDefault();
-        toggleTheme();
       } else if (key === "k") {
         event.preventDefault();
         els.globalSearch.focus();
@@ -2215,15 +2252,22 @@ Resultado: cache reiniciado.`,
   }
 
   function init() {
-    state.theme = els.html.dataset.theme === "light" ? "light" : "dark";
-    setTheme(state.theme, false);
+    const initialTheme = ["light", "dark", "huawei"].includes(els.html.dataset.theme)
+      ? els.html.dataset.theme
+      : "dark";
+    setTheme(initialTheme, false);
+
+    // O wizard é uma página dedicada: ele vive dentro da área de conteúdo.
+    els.wizardMount.appendChild(els.wizardPage);
+
     applySidebarState();
     initAccordions();
     initEvents();
     initWizardEvents();
     updateConnectionUI();
     updateTargets();
-    renderServices();
+    navigateToPage("dashboard", { force: true });
+    window.__hwm = { state, els, rules, advanceWizard, validateStep };
     updateData();
     updateClock();
     setInterval(updateClock, 1000);
